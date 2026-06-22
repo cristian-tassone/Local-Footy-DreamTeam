@@ -1,0 +1,10 @@
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+*~
+
+# Node (none committed, but just in case)
+node_modules/
+npm-debug.log*
