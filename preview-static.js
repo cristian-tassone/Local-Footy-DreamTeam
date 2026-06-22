@@ -10,7 +10,7 @@ const MIME = { '.html':'text/html; charset=utf-8', '.js':'text/javascript', '.cs
 
 http.createServer((req, res) => {
   const route = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
-  const file = route === '/' ? 'footy-fantasy.html' : route.slice(1);
+  const file = route === '/' ? 'index.html' : route.slice(1);
   const full = path.join(DIR, file);
   if (!full.startsWith(DIR)) { res.writeHead(403); res.end(); return; }
   fs.readFile(full, (err, data) => {
