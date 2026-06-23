@@ -5,6 +5,9 @@ desktop.ini
 *.tmp
 *~
 
+# Excel temp lock files
+~$*
+
 # Node (none committed, but just in case)
 node_modules/
 npm-debug.log*
