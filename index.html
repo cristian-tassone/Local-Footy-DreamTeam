@@ -29,6 +29,8 @@
   --red:#ef251d;
   --blue:#8f6cff;
   --display-font:"Russo One", "Arial Black", Impact, Arial, sans-serif;
+  --boost-green:#12a85a;
+  --boost-green-dark:#086b39;
 }
 
 * { box-sizing:border-box; }
@@ -174,7 +176,14 @@ body {
   color:#fff;
 }
 
-.reset {
+.panel-actions {
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.reset,
+.rules-btn {
   border:1px solid rgba(239,37,29,.78);
   background:var(--hub-red);
   color:#fff;
@@ -183,6 +192,16 @@ body {
   font-weight:900;
   cursor:pointer;
   text-transform:uppercase;
+}
+
+.rules-btn {
+  border-color:rgba(255,255,255,.18);
+  background:#343641;
+}
+
+.rules-btn:hover,
+.reset:hover {
+  filter:brightness(1.08);
 }
 
 .field-wrap {
@@ -292,6 +311,10 @@ body {
   box-shadow:0 0 0 2px rgba(244,196,0,.55), 0 3px 8px rgba(0,0,0,.30);
 }
 
+.player-slot.value-boost {
+  box-shadow:0 0 0 2px rgba(18,168,90,.62), 0 3px 8px rgba(0,0,0,.30);
+}
+
 .player-slot.captain::before {
   content:"";
   position:absolute;
@@ -300,6 +323,17 @@ body {
   top:0;
   height:4px;
   background:linear-gradient(90deg,#ffdf49,#f0bd00,#ffe679);
+  z-index:4;
+}
+
+.player-slot.value-boost::before {
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  top:0;
+  height:4px;
+  background:linear-gradient(90deg,#35d77e,var(--boost-green),#7ef0aa);
   z-index:4;
 }
 
@@ -322,7 +356,17 @@ body {
   color:#1a1a1a;
 }
 
+.player-slot.value-boost .slot-top {
+  background:linear-gradient(90deg,#0f8d4c,var(--boost-green),#35d77e);
+  color:#fff;
+}
+
 .player-slot.captain .slot-pos {
+  background:rgba(0,0,0,.32);
+  color:#fff;
+}
+
+.player-slot.value-boost .slot-pos {
   background:rgba(0,0,0,.32);
   color:#fff;
 }
@@ -454,6 +498,17 @@ body {
 .capbtn.active {
   background:#f0bd00;
   color:#111;
+}
+
+.boostbtn {
+  background:#fff;
+  color:#123321;
+  border:1px solid #bfe9cf;
+}
+
+.boostbtn.active {
+  background:var(--boost-green);
+  color:#fff;
 }
 
 .tradebtn {
@@ -588,8 +643,8 @@ body {
 .pos-pill.active { color:#fff; border-color:transparent; }
 .pos-pill.active[data-pos="ALL"] { background:var(--hub-red); color:#fff; }
 .pos-pill.active[data-pos="DEF"] { background:#315e9c; }
-.pos-pill.active[data-pos="MID"] { background:var(--hub-red); }
-.pos-pill.active[data-pos="FWD"] { background:#e33030; }
+.pos-pill.active[data-pos="MID"] { background:#159861; }
+.pos-pill.active[data-pos="FWD"] { background:#e67f2a; }
 .pos-pill.active[data-pos="RUC"] { background:var(--hub-purple); }
 
 /* ---- Single-line filter toolbar ---- */
@@ -634,8 +689,8 @@ body {
 .afford-btn {
   height:38px;
   width:100%;
-  border:1px solid var(--hub-red);
-  background:var(--hub-red);
+  border:1px solid #4b4e56;
+  background:#303238;
   color:#fff;
   border-radius:4px;
   padding:0 14px;
@@ -645,11 +700,11 @@ body {
   white-space:nowrap;
   transition:.12s ease;
 }
-.afford-btn:hover { background:#ff332b; border-color:#ff332b; }
+.afford-btn:hover { background:#3b3e46; border-color:#646872; }
 .afford-btn.active {
-  background:var(--hub-purple);
+  background:#159861;
   color:#fff;
-  border-color:var(--hub-purple);
+  border-color:#159861;
 }
 
 /* team dropdown */
@@ -1059,8 +1114,8 @@ body {
 }
 
 .pos-DEF { background:#1677c8; }
-.pos-MID { background:var(--hub-red); }
-.pos-FWD { background:#e33030; }
+.pos-MID { background:#159861; }
+.pos-FWD { background:#e67f2a; }
 .pos-RUC { background:#7b3cc8; }
 
 .cell {
@@ -1092,6 +1147,231 @@ body {
 .rule.bad {
   background:#f7d6d6;
   color:#a21717;
+}
+
+.rule.neutral {
+  background:#303238;
+  color:#dbe2ec;
+}
+
+.toast {
+  position:fixed;
+  left:50%;
+  bottom:22px;
+  transform:translate(-50%, 12px);
+  background:#111214;
+  color:#fff;
+  border:1px solid var(--hub-line);
+  border-left:4px solid var(--hub-red);
+  border-radius:6px;
+  padding:11px 14px;
+  font-size:12px;
+  font-weight:900;
+  opacity:0;
+  pointer-events:none;
+  z-index:120;
+  box-shadow:0 12px 28px rgba(0,0,0,.36);
+  transition:.16s ease;
+}
+
+.toast.show {
+  opacity:1;
+  transform:translate(-50%, 0);
+}
+
+.rules-modal {
+  position:fixed;
+  inset:0;
+  display:none;
+  place-items:center;
+  padding:18px;
+  background:rgba(0,0,0,.68);
+  z-index:110;
+}
+
+.rules-modal.open {
+  display:grid;
+}
+
+.rules-dialog {
+  width:min(620px, 94vw);
+  max-height:min(720px, 88dvh);
+  overflow:auto;
+  background:#1d1f23;
+  color:#fff;
+  border:1px solid var(--hub-line);
+  border-radius:8px;
+  box-shadow:0 18px 48px rgba(0,0,0,.46);
+}
+
+.rules-dialog-head {
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:0 14px;
+  background:#28292d;
+  border-bottom:1px solid var(--hub-line);
+}
+
+.rules-dialog-head h2 {
+  margin:0;
+  font-size:16px;
+  text-transform:uppercase;
+}
+
+.rules-close {
+  width:30px;
+  height:30px;
+  border:1px solid var(--hub-line);
+  border-radius:5px;
+  background:#111214;
+  color:#fff;
+  font-weight:900;
+  cursor:pointer;
+}
+
+/* ── Rules: interactive segmented panel ── */
+.rules-dialog-body { padding:14px; }
+
+.rules-seg {
+  display:flex;
+  gap:6px;
+  background:#141518;
+  border:1px solid var(--hub-line);
+  border-radius:10px;
+  padding:5px;
+  margin-bottom:14px;
+}
+.rseg {
+  flex:1;
+  border:0;
+  border-radius:7px;
+  background:transparent;
+  color:var(--hub-muted);
+  font-weight:800;
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+  padding:9px 6px;
+  cursor:pointer;
+  transition:.15s ease;
+}
+.rseg:hover { color:#fff; }
+.rseg.active {
+  background:var(--hub-red);
+  color:#fff;
+  box-shadow:0 2px 8px rgba(239,37,29,.4);
+}
+
+.rpanel { display:none; }
+.rpanel.active { display:block; animation:rfade .22s ease; }
+@keyframes rfade {
+  from { opacity:0; transform:translateY(6px); }
+  to { opacity:1; transform:none; }
+}
+
+/* squad formation */
+.rule-field {
+  background:linear-gradient(180deg,#1f3b22,#15301a);
+  border:1px solid var(--hub-line);
+  border-radius:10px;
+  padding:14px 10px;
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+  margin-bottom:12px;
+}
+.rf-line { display:flex; justify-content:center; gap:10px; }
+.rf-pos {
+  min-width:66px;
+  text-align:center;
+  padding:8px 0;
+  border-radius:6px;
+  font-weight:900;
+  font-size:12px;
+  color:#fff;
+  box-shadow:0 2px 5px rgba(0,0,0,.4);
+}
+.rf-swing { background:#d4a017; color:#141414; }
+
+.rule-cards {
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  margin-bottom:12px;
+}
+.rcard {
+  background:#141518;
+  border:1px solid var(--hub-line);
+  border-radius:9px;
+  padding:11px 8px;
+  text-align:center;
+}
+.rc-big { font-size:19px; font-weight:900; color:#fff; line-height:1; }
+.rc-lbl {
+  margin-top:5px;
+  font-size:10px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  color:var(--hub-muted);
+}
+
+/* captain / boost hero */
+.rule-hero {
+  display:flex;
+  align-items:center;
+  gap:14px;
+  border-radius:11px;
+  padding:16px;
+  margin-bottom:12px;
+}
+.hero-cap { background:linear-gradient(135deg,#3a2a10,#1e1f22); border:1px solid #d4a017; }
+.hero-boost { background:linear-gradient(135deg,#2a1f47,#1e1f22); border:1px solid var(--hub-purple); }
+.hero-badge {
+  flex:none;
+  width:62px;
+  height:62px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  font-size:22px;
+  font-weight:900;
+  color:#fff;
+}
+.hero-cap .hero-badge { background:#d4a017; color:#141414; }
+.hero-boost .hero-badge { background:var(--hub-purple); }
+.hero-text strong { display:block; font-size:16px; color:#fff; }
+.hero-text span { display:block; margin-top:3px; font-size:12px; color:var(--hub-muted); }
+
+/* rule line cards */
+.rule-list { display:flex; flex-direction:column; gap:8px; }
+.rline {
+  display:flex;
+  gap:11px;
+  align-items:flex-start;
+  background:#141518;
+  border:1px solid var(--hub-line);
+  border-radius:9px;
+  padding:11px 12px;
+  font-size:13px;
+  color:#e7edf4;
+  line-height:1.42;
+}
+.rline strong { color:#fff; }
+.rline-ic {
+  flex:none;
+  width:24px;
+  height:24px;
+  border-radius:6px;
+  display:grid;
+  place-items:center;
+  background:#26272b;
+  color:var(--hub-red);
+  font-weight:900;
+  font-size:13px;
 }
 
 @media (max-width:1200px) {
@@ -1207,6 +1487,13 @@ body {
   .panel-head h2 { font-size:11px; }
   .reset {
     display:none;
+  }
+  .panel-actions {
+    gap:5px;
+  }
+  .rules-btn {
+    padding:5px 8px;
+    font-size:10px;
   }
 
   .field-wrap {
@@ -1380,6 +1667,22 @@ body {
     padding:3px 5px;
     font-size:9px;
   }
+
+  .rules-modal {
+    align-items:end;
+    padding:10px;
+  }
+
+  .rules-dialog {
+    width:100%;
+    max-height:76dvh;
+    border-radius:8px 8px 6px 6px;
+  }
+
+  .rules-dialog-body { padding:12px; }
+  .rule-cards { grid-template-columns:repeat(2,1fr); }
+  .rseg { font-size:11px; padding:8px 4px; }
+  .hero-badge { width:54px; height:54px; font-size:19px; }
 
   .player-panel {
     position:fixed;
@@ -1597,11 +1900,89 @@ body {
   <div class="nav-badge">My Team</div>
 </nav>
 
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<div class="rules-modal" id="rulesModal" aria-hidden="true">
+  <div class="rules-dialog" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <div class="rules-dialog-head">
+      <h2 id="rulesTitle">How It Works</h2>
+      <button class="rules-close" id="rulesClose" aria-label="Close rules">×</button>
+    </div>
+    <div class="rules-dialog-body">
+      <div class="rules-seg" id="rulesSeg">
+        <button class="rseg active" data-seg="squad">Squad</button>
+        <button class="rseg" data-seg="captain">Captain</button>
+        <button class="rseg" data-seg="boost">Value Boost</button>
+        <button class="rseg" data-seg="scoring">Scoring</button>
+      </div>
+
+      <!-- SQUAD -->
+      <div class="rpanel active" data-panel="squad">
+        <div class="rule-field">
+          <div class="rf-line"><span class="rf-pos pos-DEF">DEF</span></div>
+          <div class="rf-line"><span class="rf-pos pos-RUC">RUC</span></div>
+          <div class="rf-line"><span class="rf-pos pos-MID">MID</span><span class="rf-pos pos-MID">MID</span></div>
+          <div class="rf-line"><span class="rf-pos pos-FWD">FWD</span></div>
+          <div class="rf-line"><span class="rf-pos rf-swing">SWING</span><span class="rf-pos rf-swing">SWING</span></div>
+        </div>
+        <div class="rule-cards">
+          <div class="rcard"><div class="rc-big">7</div><div class="rc-lbl">Players</div></div>
+          <div class="rcard"><div class="rc-big" id="ruleCap">$3M</div><div class="rc-lbl">Salary cap</div></div>
+          <div class="rcard"><div class="rc-big">1</div><div class="rc-lbl">Max / club</div></div>
+          <div class="rcard"><div class="rc-big">ANY</div><div class="rc-lbl">Swingman pos</div></div>
+        </div>
+        <div class="rule-list">
+          <div class="rline"><span class="rline-ic">✓</span><div>Pick <strong>7 players</strong>: 1 DEF, 1 RUC, 2 MID, 1 FWD and 2 Swingmen.</div></div>
+          <div class="rline"><span class="rline-ic">↔</span><div><strong>Swingmen</strong> can be filled by any position.</div></div>
+          <div class="rline"><span class="rline-ic">$</span><div>Stay <strong>under the salary cap</strong>.</div></div>
+          <div class="rline"><span class="rline-ic">1</span><div>Maximum <strong>one player per club</strong>.</div></div>
+          <div class="rline"><span class="rline-ic">3</span><div>Maximum <strong>three midfielders</strong> across your whole team, including Swingmen.</div></div>
+        </div>
+      </div>
+
+      <!-- CAPTAIN -->
+      <div class="rpanel" data-panel="captain">
+        <div class="rule-hero hero-cap">
+          <div class="hero-badge">2×</div>
+          <div class="hero-text"><strong>Captain scores double</strong><span>Pick one player each week to double their score.</span></div>
+        </div>
+        <div class="rule-list">
+          <div class="rline"><span class="rline-ic">↻</span><div><strong>No back-to-back.</strong> You can't captain the same player two weeks in a row.</div></div>
+          <div class="rline"><span class="rline-ic">½</span><div><strong>If your captain misses</strong>, they score half their season average — with <strong>no</strong> multiplier.</div></div>
+        </div>
+      </div>
+
+      <!-- VALUE BOOST -->
+      <div class="rpanel" data-panel="boost">
+        <div class="rule-hero hero-boost">
+          <div class="hero-badge">1.5×</div>
+          <div class="hero-text"><strong>Value Boost</strong><span>Supercharge one budget player.</span></div>
+        </div>
+        <div class="rule-list">
+          <div class="rline"><span class="rline-ic">$</span><div>Apply it to one eligible player <strong>under $300,000</strong> — they score <strong>1.5×</strong>.</div></div>
+          <div class="rline"><span class="rline-ic">∅</span><div>No player under $300k in your team? <strong>No Value Boost</strong> that week.</div></div>
+          <div class="rline"><span class="rline-ic">↻</span><div>You can keep the <strong>same</strong> Value Boost player multiple weeks while they stay eligible.</div></div>
+        </div>
+      </div>
+
+      <!-- SCORING -->
+      <div class="rpanel" data-panel="scoring">
+        <div class="rule-list">
+          <div class="rline"><span class="rline-ic">◎</span><div>Each player scores their <strong>Ranking Points</strong> for that round.</div></div>
+          <div class="rline"><span class="rline-ic">C</span><div><strong>Captain</strong> — score ×2.</div></div>
+          <div class="rline"><span class="rline-ic">B</span><div><strong>Value Boost</strong> — score ×1.5.</div></div>
+          <div class="rline"><span class="rline-ic">½</span><div>A player who <strong>misses</strong> scores half their season average.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="app">
   <section class="summary-row">
     <div class="summary-card">
       <div class="summary-label">Remaining Salary Cap</div>
-      <div class="summary-value good" id="remainingCash">$4.00m</div>
+      <div class="summary-value good" id="remainingCash">$3.00m</div>
     </div>
     <div class="summary-card">
       <div class="summary-label">Projected Score</div>
@@ -1617,7 +1998,10 @@ body {
     <section class="panel">
       <div class="panel-head">
         <h2>Team Builder</h2>
-        <button class="reset" onclick="resetTeam()">Reset</button>
+        <div class="panel-actions">
+          <button class="rules-btn" id="rulesBtn">Rules</button>
+          <button class="reset" onclick="resetTeam()">Reset</button>
+        </div>
       </div>
       <div class="field-wrap">
         <div class="field">
@@ -1647,11 +2031,6 @@ body {
               <div id="zoneSWING2"></div>
             </div>
           </div>
-        </div>
-        <div class="status-strip">
-          <div class="status-item"><span>Captain:</span><b id="captainName">None</b></div>
-          <div class="mobile-team-state" id="mobileTeamState">Incomplete · 0/7</div>
-          <div class="rules" id="rules"></div>
         </div>
       </div>
     </section>
@@ -1739,7 +2118,12 @@ body {
 
 <script>
 let PLAYERS = [];
-const CAP = 4000000;
+const CAP = 3000000;
+const VALUE_BOOST_THRESHOLD = 300000;
+const TEAM_STORAGE_KEY = "localFootyDreamTeamTeam";
+const CAPTAIN_STORAGE_KEY = "localFootyDreamTeamCaptain";
+const VALUE_BOOST_STORAGE_KEY = "valueBoostPlayerId";
+const PREVIOUS_CAPTAIN_STORAGE_KEY = "previousCaptainPlayerId";
 
 // ── Supabase (read-only: publishable key + RLS public SELECT) ──
 const SUPABASE_URL = "https://ofhhkjwfplcwcfhnjfyf.supabase.co";
@@ -1760,6 +2144,7 @@ const TEAM_SIZE = slots.length;
 let team = Object.fromEntries(slots.map(s => [s.id, null]));
 let activeSlot = "DEF1";
 let captainSlot = null;
+let valueBoostSlot = null;
 let actionSlot = null;
 let filterPos = "ALL";
 let filterDiv = "ALL";
@@ -1855,6 +2240,24 @@ function statValue(value) {
   return value == null || value === "" ? "-" : value;
 }
 
+function numericValue(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function playerKey(p) {
+  return p ? String(p.player_id ?? `${p.name}|${p.team}`) : "";
+}
+
+function showMessage(text) {
+  const toast = document.getElementById("toast");
+  if (!toast) return;
+  toast.textContent = text;
+  toast.classList.add("show");
+  clearTimeout(showMessage.timer);
+  showMessage.timer = setTimeout(() => toast.classList.remove("show"), 2600);
+}
+
 function selected() {
   return Object.entries(team).filter(([k,p]) => p).map(([slot,p]) => ({slot, ...p}));
 }
@@ -1863,8 +2266,30 @@ function spent() {
   return selected().reduce((a,p) => a + p.price, 0);
 }
 
+function isValueBoostEligible(p) {
+  return !!p && numericValue(p.price) < VALUE_BOOST_THRESHOLD;
+}
+
+function selectedValueBoostEligible() {
+  return selected().filter(isValueBoostEligible);
+}
+
+function scoreBase(p) {
+  const actual = numericValue(p.last_round);
+  const average = numericValue(p.rp) || 0;
+  return actual && actual > 0 ? actual : average / 2;
+}
+
+function scoreContribution(p) {
+  const actual = numericValue(p.last_round);
+  const average = numericValue(p.rp) || 0;
+  if (p.slot === captainSlot) return actual && actual > 0 ? actual * 2 : average / 2;
+  if (p.slot === valueBoostSlot) return scoreBase(p) * 1.5;
+  return scoreBase(p);
+}
+
 function projected() {
-  return selected().reduce((a,p) => a + p.rp * (p.slot === captainSlot ? 2 : 1), 0);
+  return selected().reduce((a,p) => a + scoreContribution(p), 0);
 }
 
 function uniqueClubs() {
@@ -1886,6 +2311,48 @@ function canAdd(p, slotId) {
   // max 3 midfielders across the whole team (incl. swingmen)
   if (p.pos === "MID" && midCount(slotId) >= MAX_MIDS) return false;
   return true;
+}
+
+function saveTeamState() {
+  try {
+    const savedTeam = {};
+    Object.entries(team).forEach(([slot, p]) => { if (p) savedTeam[slot] = playerKey(p); });
+    localStorage.setItem(TEAM_STORAGE_KEY, JSON.stringify(savedTeam));
+    const cap = captainSlot && team[captainSlot] ? playerKey(team[captainSlot]) : "";
+    const boost = valueBoostSlot && team[valueBoostSlot] ? playerKey(team[valueBoostSlot]) : "";
+    if (cap) localStorage.setItem(CAPTAIN_STORAGE_KEY, cap);
+    else localStorage.removeItem(CAPTAIN_STORAGE_KEY);
+    if (boost) localStorage.setItem(VALUE_BOOST_STORAGE_KEY, boost);
+    else localStorage.removeItem(VALUE_BOOST_STORAGE_KEY);
+  } catch (err) {
+    // localStorage can be unavailable in some private browsing contexts.
+  }
+}
+
+function restoreTeamState() {
+  try {
+    const savedTeam = JSON.parse(localStorage.getItem(TEAM_STORAGE_KEY) || "{}");
+    const byKey = new Map(PLAYERS.map(p => [playerKey(p), p]));
+    team = Object.fromEntries(slots.map(s => [s.id, null]));
+    Object.entries(savedTeam).forEach(([slot, key]) => {
+      if (team.hasOwnProperty(slot) && byKey.has(String(key))) team[slot] = byKey.get(String(key));
+    });
+    const savedCaptain = localStorage.getItem(CAPTAIN_STORAGE_KEY);
+    const savedBoost = localStorage.getItem(VALUE_BOOST_STORAGE_KEY);
+    captainSlot = null;
+    valueBoostSlot = null;
+    Object.entries(team).forEach(([slot, p]) => {
+      if (!p) return;
+      const key = playerKey(p);
+      if (key === savedCaptain) captainSlot = slot;
+      if (key === savedBoost && isValueBoostEligible(p)) valueBoostSlot = slot;
+    });
+    if (captainSlot && captainSlot === valueBoostSlot) valueBoostSlot = null;
+  } catch (err) {
+    team = Object.fromEntries(slots.map(s => [s.id, null]));
+    captainSlot = null;
+    valueBoostSlot = null;
+  }
 }
 
 function clubColour(team) {
@@ -1926,6 +2393,7 @@ function renderSlots() {
     div.className = "player-slot" +
       (activeSlot === slot.id ? " active" : "") +
       (captainSlot === slot.id ? " captain" : "") +
+      (valueBoostSlot === slot.id ? " value-boost" : "") +
       (actionSlot === slot.id ? " actions-open" : "");
     div.onclick = () => {
       activeSlot = slot.id;
@@ -1959,6 +2427,7 @@ function renderSlots() {
         <div class="card-actions">
           <button class="tradebtn" onclick="event.stopPropagation(); tradePlayer('${slot.id}');">T</button>
           <button class="capbtn ${captainSlot === slot.id ? "active" : ""}" onclick="event.stopPropagation(); setCaptain('${slot.id}');">C</button>
+          <button class="boostbtn ${valueBoostSlot === slot.id ? "active" : ""}" onclick="event.stopPropagation(); setValueBoost('${slot.id}');">VB</button>
           <button class="outbtn" onclick="event.stopPropagation(); removePlayer('${slot.id}');">×</button>
         </div>
       `;
@@ -2016,15 +2485,50 @@ function renderList() {
 function addPlayer(p) {
   if (!canAdd(p, activeSlot)) return;
   team[activeSlot] = p;
-  if (!captainSlot) captainSlot = activeSlot;
+  if (!captainSlot) {
+    let previousCaptain = "";
+    try { previousCaptain = localStorage.getItem(PREVIOUS_CAPTAIN_STORAGE_KEY); } catch (err) {}
+    if (!previousCaptain || previousCaptain !== playerKey(p)) captainSlot = activeSlot;
+  }
   actionSlot = null;
+  saveTeamState();
   render();
   closePlayerPicker();
 }
 
 function setCaptain(slot) {
+  const p = team[slot];
+  if (!p) return;
+  const key = playerKey(p);
+  let previousCaptain = "";
+  try { previousCaptain = localStorage.getItem(PREVIOUS_CAPTAIN_STORAGE_KEY); } catch (err) {}
+  if (previousCaptain && previousCaptain === key && captainSlot !== slot) {
+    showMessage("You cannot captain the same player two weeks in a row.");
+    actionSlot = null;
+    render();
+    return;
+  }
   captainSlot = slot;
+  if (valueBoostSlot === slot) valueBoostSlot = null;
   actionSlot = null;
+  try { localStorage.setItem(PREVIOUS_CAPTAIN_STORAGE_KEY, key); } catch (err) {}
+  saveTeamState();
+  render();
+}
+
+function setValueBoost(slot) {
+  const p = team[slot];
+  if (!p) return;
+  if (!isValueBoostEligible(p)) {
+    showMessage("This player is not eligible for Value Boost.");
+    actionSlot = null;
+    render();
+    return;
+  }
+  valueBoostSlot = valueBoostSlot === slot ? null : slot;
+  if (valueBoostSlot === slot && captainSlot === slot) captainSlot = null;
+  actionSlot = null;
+  saveTeamState();
   render();
 }
 
@@ -2038,9 +2542,11 @@ function tradePlayer(slot) {
   if (!target) return;
   team[slot] = null;
   if (captainSlot === slot) captainSlot = null;
+  if (valueBoostSlot === slot) valueBoostSlot = null;
   activeSlot = slot;
   filterPos = target.accepts.length > 1 ? "ALL" : target.accepts[0];
   actionSlot = null;
+  saveTeamState();
   render();
   openPlayerPicker();
 }
@@ -2048,7 +2554,9 @@ function tradePlayer(slot) {
 function removePlayer(slot) {
   team[slot] = null;
   if (captainSlot === slot) captainSlot = null;
+  if (valueBoostSlot === slot) valueBoostSlot = null;
   actionSlot = null;
+  saveTeamState();
   render();
 }
 
@@ -2056,7 +2564,9 @@ function resetTeam() {
   team = Object.fromEntries(slots.map(s => [s.id, null]));
   activeSlot = "DEF1";
   captainSlot = null;
+  valueBoostSlot = null;
   actionSlot = null;
+  saveTeamState();
   render();
 }
 
@@ -2069,22 +2579,8 @@ function renderSummary() {
   document.getElementById("remainingCash").className = "summary-value " + (rem >= 0 ? "good" : "bad");
   document.getElementById("projectedScore").textContent = Math.round(projected());
 
-  const cap = team[captainSlot];
-  document.getElementById("captainName").textContent = cap ? cap.name : "None";
-
   const active = slots.find(s => s.id === activeSlot);
   document.getElementById("activeSlotText").textContent = (isMobileView() ? "Add " : "Adding: ") + active.label;
-  document.getElementById("mobileTeamState").textContent =
-    (valid ? "Valid team" : "Incomplete") + " · " + selected().length + "/" + TEAM_SIZE;
-
-  const rules = [
-    [TEAM_SIZE + " players", complete],
-    ["Under cap", rem >= 0],
-    ["Unique clubs", uniqueClubs()],
-    [`Mids ${midCount()}/${MAX_MIDS}`, midCount() <= MAX_MIDS],
-    ["Captain", !!captainSlot],
-  ];
-  document.getElementById("rules").innerHTML = rules.map(r => `<span class="rule ${r[1] ? "good" : "bad"}">${r[0]}</span>`).join("");
 }
 
 function render() {
@@ -2254,6 +2750,36 @@ document.addEventListener("click", (e) => {
 });
 
 document.getElementById("pickerClose").addEventListener("click", closePlayerPicker);
+document.getElementById("rulesBtn").addEventListener("click", () => {
+  const modal = document.getElementById("rulesModal");
+  // keep the cap figure in sync with the live CAP value
+  document.getElementById("ruleCap").textContent = "$" + (CAP / 1000000) + "M";
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden", "false");
+});
+
+/* rules segmented control */
+document.getElementById("rulesSeg").addEventListener("click", (e) => {
+  const seg = e.target.closest(".rseg");
+  if (!seg) return;
+  const which = seg.dataset.seg;
+  document.querySelectorAll(".rseg").forEach(b => b.classList.toggle("active", b === seg));
+  document.querySelectorAll(".rpanel").forEach(p => p.classList.toggle("active", p.dataset.panel === which));
+});
+document.getElementById("rulesClose").addEventListener("click", closeRulesModal);
+document.getElementById("rulesModal").addEventListener("click", (e) => {
+  if (e.target.id === "rulesModal") closeRulesModal();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeRulesModal();
+});
+
+function closeRulesModal() {
+  const modal = document.getElementById("rulesModal");
+  modal.classList.remove("open");
+  modal.setAttribute("aria-hidden", "true");
+}
+
 document.addEventListener("click", (e) => {
   if (!document.body.classList.contains("mobile-picker-open")) return;
   const panel = document.querySelector(".player-panel");
@@ -2278,6 +2804,7 @@ async function loadPlayers() {
     const data = await res.json();
 
     PLAYERS = data.map((r, i) => ({
+      player_id: r.player_id ?? r.id ?? `${r.name}|${r.club}`,
       rank: i + 1,
       name: r.name,
       team: r.club,
@@ -2299,6 +2826,8 @@ async function loadPlayers() {
 
     buildTeamPills();
     initPriceSlider();
+    restoreTeamState();
+    saveTeamState();
     render();
   } catch (err) {
     setListMessage(
