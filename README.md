@@ -25,4 +25,4 @@ node preview-static.js          # serves on http://localhost:8090
 ## Files
 - `index.html` — the app (UI, team-building logic, Supabase fetch).
 - `preview-static.js` — tiny static file server for local / LAN preview.
-- `import-mpfnl.js`, `parse-xlsx.js`, `import-players.js` — offline tooling to parse source spreadsheets (backup / seeding only; the live app reads from Supabase).
+- `import-mpfnl.js`, `parse-xlsx.js`, `MPFNL Database.xlsx` — offline tooling to parse the source spreadsheet and seed Supabase (backup / re-seed only; the live app reads from Supabase).

@@ -8,6 +8,10 @@ desktop.ini
 # Excel temp lock files
 ~$*
 
+# Local-only data / assets (kept on disk, out of the repo)
+players_demo.*
+*.pptx
+
 # Node (none committed, but just in case)
 node_modules/
 npm-debug.log*
