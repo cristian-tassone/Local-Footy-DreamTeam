@@ -1433,6 +1433,26 @@ body {
 .auth-msg.error { color:#ff6a61; }
 .auth-msg.ok { color:#4fd07f; }
 
+.demo-mode-btn {
+  width:100%;
+  height:44px;
+  border:1px solid rgba(143,108,255,.78);
+  border-radius:12px;
+  background:linear-gradient(180deg,#343641 0%,#22242b 100%);
+  color:#fff;
+  font-weight:900;
+  font-size:13px;
+  cursor:pointer;
+  box-shadow:0 0 0 1px rgba(143,108,255,.16), 0 8px 18px rgba(0,0,0,.22);
+  transition:.15s ease;
+}
+
+.demo-mode-btn:hover {
+  border-color:#b59dff;
+  background:linear-gradient(180deg,#3d3f4b 0%,#292b33 100%);
+  transform:translateY(-1px);
+}
+
 /* logged-in view */
 .acct-card {
   display:flex; flex-direction:column; align-items:center;
@@ -2279,6 +2299,7 @@ body {
             <input type="password" id="loginPassword" autocomplete="current-password" placeholder="Password" required>
           </label>
           <button class="acct-submit" type="submit" id="loginSubmit">Log In</button>
+          <button class="demo-mode-btn" type="button" id="demoModeBtn">Demo Mode</button>
           <div class="auth-msg" id="loginMsg"></div>
         </form>
 
@@ -2558,6 +2579,7 @@ const SUPABASE_KEY = "sb_publishable_sWgdcF7mlHTZkmpKFMyjDQ_FU5GyR50";
 const sbAuth = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let authUser = null;      // Supabase auth user, or null when logged out
 let authProfile = null;   // matching row from the profiles table, or null
+let demoMode = false;
 
 const slots = [
   { id:"DEF1",   label:"DEF",   zone:"zoneDEF1",   accepts:["DEF"] },
@@ -2822,7 +2844,7 @@ function renderSlots() {
     div.onclick = () => {
       activeSlot = slot.id;
       filterPos = slot.accepts.length > 1 ? "ALL" : slot.accepts[0];
-      if (!p && !authUser && selected().length >= 1) {
+      if (!p && !hasAccountAccess() && selected().length >= 1) {
         actionSlot = null;
         closePlayerPicker();
         render();
@@ -2914,7 +2936,7 @@ function renderList() {
 
 function addPlayer(p) {
   if (!canAdd(p, activeSlot)) return;
-  if (!authUser && selected().length >= 1 && !team[activeSlot]) {
+  if (!hasAccountAccess() && selected().length >= 1 && !team[activeSlot]) {
     promptLoginForTeamCreation();
     return;
   }
@@ -3287,6 +3309,10 @@ function closeAccountModal() {
   accountModal.setAttribute("aria-hidden", "true");
 }
 
+function hasAccountAccess() {
+  return !!authUser || demoMode;
+}
+
 function promptLoginForTeamCreation() {
   document.getElementById("authSeg").classList.remove("signup");
   document.querySelectorAll("#authSeg .acct-tab").forEach(b => b.classList.toggle("active", b.dataset.auth === "login"));
@@ -3305,15 +3331,15 @@ function setAuthMsg(id, text, kind) {
 
 // reflect logged-in / logged-out state across the UI
 function updateAccountUI() {
-  const loggedIn = !!authUser;
-  document.getElementById("accountLoggedOut").hidden = loggedIn;
-  document.getElementById("accountLoggedIn").hidden = !loggedIn;
-  document.getElementById("profileDot").hidden = !loggedIn;
+  const accountActive = !!authUser || demoMode;
+  document.getElementById("accountLoggedOut").hidden = accountActive;
+  document.getElementById("accountLoggedIn").hidden = !accountActive;
+  document.getElementById("profileDot").hidden = !accountActive;
 
-  if (loggedIn) {
-    const name = (authProfile && authProfile.display_name) || "Coach";
-    const teamName = (authProfile && authProfile.team_name) || "—";
-    const email = (authProfile && authProfile.email) || authUser.email || "—";
+  if (accountActive) {
+    const name = demoMode ? "Demo Coach" : ((authProfile && authProfile.display_name) || "Coach");
+    const teamName = demoMode ? "Demo Team" : ((authProfile && authProfile.team_name) || "-");
+    const email = demoMode ? "Demo Mode" : ((authProfile && authProfile.email) || authUser.email || "-");
     document.getElementById("acctDisplay").textContent = name;
     document.getElementById("acctTeam").textContent = teamName;
     document.getElementById("acctTeamRow").textContent = teamName;
@@ -3354,6 +3380,7 @@ async function ensureProfile(user, fallback) {
 
 // react to a session (page load + auth state changes): fetch only, never create
 async function applySession(session) {
+  if (session) demoMode = false;
   authUser = session ? session.user : null;
   authProfile = authUser ? await fetchProfile(authUser.id) : null;
   updateAccountUI();
@@ -3441,7 +3468,8 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
 
 /* --- Sign out --- */
 document.getElementById("signOutBtn").addEventListener("click", async () => {
-  await sbAuth.auth.signOut();
+  if (authUser) await sbAuth.auth.signOut();
+  demoMode = false;
   authUser = null; authProfile = null;
   updateAccountUI();
   showMessage("Signed out");
@@ -3452,6 +3480,14 @@ document.getElementById("accountBtn").addEventListener("click", openAccountModal
 document.getElementById("accountClose").addEventListener("click", closeAccountModal);
 accountModal.addEventListener("click", (e) => { if (e.target === accountModal) closeAccountModal(); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeAccountModal(); });
+document.getElementById("demoModeBtn").addEventListener("click", () => {
+  demoMode = true;
+  authUser = null;
+  authProfile = null;
+  updateAccountUI();
+  closeAccountModal();
+  showMessage("Demo Mode enabled");
+});
 document.getElementById("authSeg").addEventListener("click", (e) => {
   const seg = e.target.closest(".acct-tab");
   if (!seg) return;
@@ -3462,6 +3498,7 @@ document.getElementById("authSeg").addEventListener("click", (e) => {
 
 /* --- Save Team: currently saves remaining salary into profiles.bank only --- */
 document.getElementById("saveTeamBtn").addEventListener("click", async () => {
+  if (demoMode) { showMessage("Demo Mode team is not saved."); return; }
   if (!authUser) { showMessage("Please log in to save your team."); openAccountModal(); return; }
   const btn = document.getElementById("saveTeamBtn");
   const bank = remainingBank();
